@@ -117,8 +117,12 @@ run_wpadcenter();
  * @return void echos html to render on frontend
  */
 function wpadcenter_display_ad( $atts ) {
-	$shortcode = '[wpadcenter_ad id=' . $atts['id'] . ' align=' . $atts['align'] . ']';
-	echo do_shortcode( $shortcode );
+	// Sanitize the attributes
+	$id = isset( $atts['id'] ) ? intval( $atts['id'] ) : 0; // Ensure ID is an integer
+	$align = isset( $atts['align'] ) ? sanitize_text_field( $atts['align'] ) : 'left'; // Sanitize text input
+
+   $shortcode = '[wpadcenter_ad id="' . $id . '" align="' . $align . '"]';
+   echo do_shortcode( $shortcode );
 }
 
 /**
