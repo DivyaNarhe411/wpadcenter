@@ -1549,7 +1549,8 @@ class Wpadcenter_Admin {
 				$today = gmdate( 'Y-m-d' );
 				global $wpdb;
 				$table_ads_statistics = esc_sql( $wpdb->prefix . 'ads_statistics' ); 
-				$results = $wpdb->get_results( $wpdb->prepare( 'SELECT * FROM `$table_ads_statistics` where ad_date=%s AND ad_id=%d', array( $today, $ad_id ) ) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.DirectQuery
+
+				$results = $wpdb->get_results( $wpdb->prepare( "SELECT * FROM {$table_ads_statistics} WHERE ad_date = %s AND ad_id = %d", $today, $ad_id) ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.DirectQuery
 				if ( ! count( $results ) ) {
 					$return_value = '0 clicks / 0 views / 0.00% CTR';
 				} else {
@@ -1792,7 +1793,7 @@ class Wpadcenter_Admin {
 	public function wpadcenter_ad_statistics( $post ) {
 		global $wpdb;
 		$table_ads_statistics = esc_sql( $wpdb->prefix . 'ads_statistics' ); 
- 		$results = $wpdb->get_results( $wpdb->prepare( 'SELECT * FROM `$table_ads_statistics` WHERE ad_date > now() - interval 7 day and ad_id = %d;', $post->ID ) );// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+ 		$results = $wpdb->get_results( $wpdb->prepare( "SELECT * FROM {$table_ads_statistics} WHERE ad_date > now() - interval 7 day and ad_id = %d;", $post->ID ) );// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 		if ( empty( $results ) ) {
 			$results = array();
 		}
@@ -2789,7 +2790,11 @@ class Wpadcenter_Admin {
 			}
 			global $wpdb;
 			$table_ads_statistics = esc_sql( $wpdb->prefix . 'ads_statistics' ); 
-			$records = $wpdb->get_results( $wpdb->prepare( 'SELECT * FROM `$table_ads_statistics` WHERE ad_date BETWEEN %s AND %s AND ad_id IN (' . implode( ',', $ad_ids ) . ')', array( $start_date, $end_date ) ) ); // phpcs:ignore
+			$placeholders = implode( ',', array_fill( 0, count( $ad_ids ), '%d' ) );
+			$records = $wpdb->get_results( $wpdb->prepare(
+				"SELECT * FROM `$table_ads_statistics` WHERE ad_date BETWEEN %s AND %s AND ad_id IN ($placeholders)",
+				array_merge( array( $start_date, $end_date ), $ad_ids ))
+			);
 			if ( is_array( $records ) ) {
 				foreach ( $records as $record ) {
 					$record->ad_title = ! empty( get_the_title( intval( $record->ad_id ) ) ) ? get_the_title( intval( $record->ad_id ) ) : __( '(no title)', 'wpadcenter' );
